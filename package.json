@@ -1,0 +1,23 @@
+{
+  "name": "jsb-query-server-bun",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "bun --watch server.ts",
+    "build": "bun run build.ts"
+  },
+  "description": "Jsonbank Query Server For Processing Jsb Queries, using Bun",
+  "main": "index.js",
+  "repository": "https://github.com/jsonbankio/query-server",
+  "author": "jsonbankio",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "@types/lodash": "^4.14.188",
+    "bun-types": "^1.0.1",
+    "prettier": "^2.7.1"
+  },
+  "dependencies": {
+    "@xpresser/env": "^2.0.10",
+    "lodash": "^4.17.21"
+  }
+}
