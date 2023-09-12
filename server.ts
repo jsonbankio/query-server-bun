@@ -16,16 +16,17 @@ async function main() {
             let url: URL | null = null;
 
             // req.
+            if (isValidRequest) {
+                try {
+                    // parse the url
+                    url = new URL(req.url || '', `https://${req.headers.get('host')}`);
 
-            try {
-                // parse the url
-                url = new URL(req.url || '', `https://${req.headers.get('host')}`);
-
-                if (!["/query", "/"].includes(url.pathname)) {
+                    if (!["/query", "/"].includes(url.pathname)) {
+                        isValidRequest = false;
+                    }
+                } catch (e) {
                     isValidRequest = false;
                 }
-            } catch (e) {
-                isValidRequest = false;
             }
 
 

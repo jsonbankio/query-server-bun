@@ -4,3 +4,5 @@ await Bun.build({
     outdir: './dist',
     target: "bun",
 })
+
+console.log("Build Complete!")

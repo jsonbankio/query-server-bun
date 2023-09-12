@@ -2,7 +2,7 @@
   "name": "jsb-query-server-bun",
   "version": "1.0.0",
   "scripts": {
-    "test": "bun --watch server.ts",
+    "dev": "bun --watch server.ts",
     "build": "bun run build.ts",
     "start": "bun run build && bun run ./dist/server.js"
   },
@@ -15,11 +15,11 @@
     "@types/lodash": "^4.14.188",
     "bun-types": "^1.0.1",
     "prettier": "^3.0.3",
-    "@types/autocannon": "^7.9.1"
+    "@types/autocannon": "^7.9.1",
+    "autocannon": "^7.12.0"
   },
   "dependencies": {
-    "@xpresser/env": "^2.0.10",
-    "autocannon": "^7.12.0",
+    "@xpresser/env": "^2.1.1",
     "lodash": "^4.17.21"
   }
 }
