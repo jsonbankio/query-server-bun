@@ -15,6 +15,8 @@ async function main() {
             let isValidRequest = req.method == 'POST';
             let url: URL | null = null;
 
+            // req.
+
             try {
                 // parse the url
                 url = new URL(req.url || '', `https://${req.headers.get('host')}`);
