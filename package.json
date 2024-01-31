@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@xpresser/env": "^2.1.1",
+    "axios": "^1.6.7",
     "lodash": "^4.17.21"
   }
 }

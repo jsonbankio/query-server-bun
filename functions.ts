@@ -6,11 +6,29 @@ import {env} from "./env";
  * Add Lodash Mixins
  */
 _.mixin({
+    /**
+     * Pick from array of objects
+     * @param obj
+     * @param keys
+     */
     mapPick: (obj: any, ...keys: string[]) => {
         if (Array.isArray(keys[0])) keys = keys[0];
 
         return _.map(obj, (value) => {
             return _.pick(value, keys);
+        });
+    },
+
+    /**
+     * Omits from array of objects
+     * @param obj
+     * @param keys
+     */
+    mapOmit: (obj: any, ...keys: string[]) => {
+        if (Array.isArray(keys[0])) keys = keys[0];
+
+        return _.map(obj, (value) => {
+            return _.omit(value, keys);
         });
     }
 });
@@ -200,6 +218,7 @@ const allowedLodashFunctions = [
     "take",
     "takeRight",
     "mapPick",
+    "mapOmit",
 
     // Obj
     "get",
