@@ -9,7 +9,6 @@ async function main() {
     // log ENV
     console.log(`Environment: ${env.NODE_ENV}`);
 
-    // @ts-ignore
     Bun.serve({
         async fetch(req: Request) {
             let isValidRequest = req.method == 'POST';
@@ -67,7 +66,7 @@ async function main() {
 
                 // check if content is string
                 if (typeof content !== 'string') {
-                    // check if content is object
+                    // check if content is not object
                     if (typeof content !== 'object') {
                         return sendJson({error: {code: 'invalidContent', message: 'Invalid content'}}, 400);
                     }
@@ -81,11 +80,10 @@ async function main() {
                 }
 
 
-                return jsb_queryObject(content, url, (data, status) =>
+                return jsb_queryObject<any>(content, url, (data, status) =>
                     sendJson(data, status));
             } else {
                 return sendJson({
-                    endpoint: 'https://query.jsonbank.io',
                     message: 'Only POST requests are allowed.',
                 }, 400);
             }

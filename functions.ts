@@ -1,5 +1,4 @@
 import _ from "lodash";
-import {env} from "./env";
 
 
 /**
@@ -59,17 +58,17 @@ function base64JsonDecode(str: string) {
 export function jsb_checkForVariables(
     url: URL,
     args: string[]
-) {
+): Array<any|null> {
     for (const i in args) {
         let arg = String(args[i]).trim();
         // Can't be a var( if not upto 4
         if (arg.length < 4) continue;
 
         const isVar = arg.indexOf("var(") === 0;
-        const isRaw = arg.indexOf("raw(") === 0;
-        const isJson = arg.indexOf("json(") === 0;
+        const isRaw = !isVar && arg.indexOf("raw(") === 0;
+        const isJson = !isRaw && arg.indexOf("json(") === 0;
 
-        // if not var( && raw( continue
+        // if not var( && raw( && json(, continue
         if (!isRaw && !isVar && !isJson) continue;
 
         // get the keyword
@@ -113,7 +112,8 @@ export function jsb_checkForVariables(
     return args;
 }
 
-type Respond = (error: { error: { code: string, message: string } }, status: number) => any | ((obj: string) => any)
+export type RespondError = { error: { code: string, message: string } };
+export type Respond<T> = (res: RespondError | T, status: number) => any | ((obj: string) => any)
 
 /**
  * Parse the jsonbank query string.
@@ -121,16 +121,16 @@ type Respond = (error: { error: { code: string, message: string } }, status: num
  * @param url
  * @param respond
  */
-export function jsb_queryObject(content: string, url: URL, respond: Respond) {
+export function jsb_queryObject<T>(content: string, url: URL, respond: Respond<T>) {
     // get content size
     const contentSize = jsb_stringSize(content);
-    // stop if content size is greater than 2MB
-    if (contentSize > env.JSB_QUERY_SERVER_MAX_CONTENT_SIZE * 1024 * 1024) {
+    // stop if content size is greater than 5MB
+    if (contentSize > 5 * 1024 * 1024) {
         return respond(
             {
                 error: {
                     code: "contentSizeExceeded",
-                    message: `Content size exceeded 2MB`
+                    message: `Content size exceeded 5MB`
                 }
             },
             400
@@ -182,10 +182,11 @@ export function jsb_queryObject(content: string, url: URL, respond: Respond) {
             // Try Checking for variables e.g pick-var(only)
             // var(), raw() && json()
             try {
-                args = jsb_checkForVariables(url, args);
+                let varArgs = jsb_checkForVariables(url, args);
+
 
                 // Run Query.
-                const result = (_ as any)[fn](parsed, ...args);
+                const result = (_ as any)[fn](parsed, ...varArgs);
 
                 if (result === undefined)
                     return respond(
@@ -224,13 +225,9 @@ const allowedLodashFunctions = [
     "get",
     "at",
     "has",
-    "hasIn",
     "keys",
     "values",
-    "valuesIn",
-    "keysIn",
     "omit",
-    "unset",
     "pick",
 
     // lang
