@@ -188,7 +188,7 @@ export function jsb_queryObject<T>(content: string, url: URL, respond: Respond<T
                 // Run Query.
                 const result = (_ as any)[fn](parsed, ...varArgs);
 
-                if (result === undefined)
+                if (result === undefined || result === null)
                     return respond(
                         {error: {code: "resultUndefined", message: `Query: {${fn}} returned undefined!`}},
                         500
