@@ -45,7 +45,7 @@ function base64JsonDecode(str: string) {
  * Get size of a string
  * @param str
  */
- function jsb_stringSize(str: string) {
+function jsb_stringSize(str: string) {
     return (new TextEncoder().encode(str)).length
 }
 
@@ -58,7 +58,7 @@ function base64JsonDecode(str: string) {
 export function jsb_checkForVariables(
     url: URL,
     args: string[]
-): Array<any|null> {
+): Array<any | null> {
     for (const i in args) {
         let arg = String(args[i]).trim();
         // Can't be a var( if not upto 4
@@ -197,7 +197,15 @@ export function jsb_queryObject<T>(content: string, url: URL, respond: Respond<T
                 if (typeof result === "object") {
                     parsed = result;
                 } else {
-                    parsed = {$value: result};
+                    // check if this query is the last query.
+                    if (q === queries[queries.length - 1]) {
+                        // {$value: result} is only used when the result is not an object or an array.
+                        parsed = {$value: result};
+                    } else {
+                        // Query is not last query, but result is not an object, we keep parsing.
+                        parsed = result;
+                    }
+
                 }
             } catch (e: any) {
                 return respond({error: {code: "badQuery", message: e.message}}, 400);
