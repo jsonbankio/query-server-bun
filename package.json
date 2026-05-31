@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "bun --watch server.ts",
     "build": "bun run build.ts",
-    "start": "bun run build && bun run ./dist/server.js"
+    "start": "bun run build && bun run ./dist/server.js",
+    "test": "bun test"
   },
   "description": "Jsonbank Query Server For Processing Jsb Queries, using Bun",
   "repository": "https://github.com/jsonbankio/query-server",
