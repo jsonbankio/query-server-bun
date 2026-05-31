@@ -353,13 +353,13 @@ describe("Collection Filters", () => {
         })
 
         url = new URL(`${HOST}/?query=findLast-json(findFilter)&findFilter=${JSON.stringify(['age', 36])}`);
-        jsb_queryObject<any>(users, url, (data, status) => {
+        jsb_queryObject<any>(users, url, (data) => {
             expect(data).toBeDefined();
             expect(data).toEqual({'user': 'pebbles', 'age': 36, 'active': true})
         })
 
         url = new URL(`${HOST}/?query=findLast-active`);
-        jsb_queryObject<any>(users, url, (data, status) => {
+        jsb_queryObject<any>(users, url, (data) => {
             expect(data).toBeDefined();
             expect(data).toEqual({'user': 'pebbles', 'age': 36, 'active': true})
 
@@ -368,7 +368,7 @@ describe("Collection Filters", () => {
 
     test("filter", () => {
         let url = new URL(`${HOST}/?query=filter-json(data)&data=${JSON.stringify({currency: "EUR"})}`);
-        jsb_queryObject<any>(countries, url, (data, status) => {
+        jsb_queryObject<any>(countries, url, (data) => {
             expect(data).toBeDefined();
             expect(data).toBeArray();
             expect(data.length).toBeGreaterThan(0);
@@ -381,20 +381,20 @@ describe("Collection Filters", () => {
 
     test("size", () => {
         let url = new URL(`${HOST}/?query=filter-json(data),size&data=${JSON.stringify({currency: "USD"})}`);
-        jsb_queryObject<any>(countries, url, (data, status) => {
+        jsb_queryObject<any>(countries, url, (data) => {
             expect(data).toBeDefined();
             expect(data).toEqual({$value: 1})
         })
 
 
         url = new URL(`${HOST}/?query=nth-0,size`);
-        jsb_queryObject<any>(countries, url, (data, status) => {
+        jsb_queryObject<any>(countries, url, (data) => {
             expect(data).toBeDefined();
             expect(data).toEqual({$value: 6})
         })
 
         url = new URL(`${HOST}/?query=nth-0,get-code,size`);
-        jsb_queryObject<any>(countries, url, (data, status) => {
+        jsb_queryObject<any>(countries, url, (data) => {
             expect(data).toBeDefined();
             expect(data).toEqual({$value: 2})
         })
@@ -406,7 +406,7 @@ describe("Collection Filters", () => {
         url.searchParams.append("filter", JSON.stringify({currency: "EUR"}));
         url.searchParams.append("condition", JSON.stringify({region: "Europe"}));
 
-        jsb_queryObject<any>(countries, url, (data, status) => {
+        jsb_queryObject<any>(countries, url, (data) => {
             expect(data).toBeDefined();
             expect(data).toEqual({$value: true})
         })
@@ -414,14 +414,14 @@ describe("Collection Filters", () => {
 
     test("sortBy", () => {
         const users = JSON.stringify([
-            { 'user': 'fred',   'age': 48 },
-            { 'user': 'barney', 'age': 34 },
-            { 'user': 'fred',   'age': 40 },
-            { 'user': 'barney', 'age': 36 }
+            {'user': 'fred', 'age': 48},
+            {'user': 'barney', 'age': 34},
+            {'user': 'fred', 'age': 40},
+            {'user': 'barney', 'age': 36}
         ]);
 
         let url = new URL(`${HOST}/?query=sortBy-age,nth-0,get-age`);
-        jsb_queryObject<any>(users, url, (data, status) => {
+        jsb_queryObject<any>(users, url, (data) => {
             expect(data).toBeDefined();
             expect(data).toEqual({$value: 34})
 
@@ -430,16 +430,56 @@ describe("Collection Filters", () => {
 
     test("orderBy", () => {
         const users = JSON.stringify([
-            { 'user': 'fred',   'age': 48 },
-            { 'user': 'barney', 'age': 34 },
-            { 'user': 'fred',   'age': 40 },
-            { 'user': 'barney', 'age': 36 }
+            {'user': 'fred', 'age': 48},
+            {'user': 'barney', 'age': 34},
+            {'user': 'fred', 'age': 40},
+            {'user': 'barney', 'age': 36}
         ]);
 
         let url = new URL(`${HOST}/?query=orderBy-age-desc,nth-0,get-age`);
-        jsb_queryObject<any>(users, url, (data, status) => {
+        jsb_queryObject<any>(users, url, (data) => {
             expect(data).toBeDefined();
             expect(data).toEqual({$value: 48})
+        })
+    })
+
+    test("reject", () => {
+        let url = new URL(`${HOST}/?query=filter-json(filter),nth-0,get-name`);
+        url.searchParams.append("filter", JSON.stringify({region: "Europe"}));
+        jsb_queryObject<any>(countries, url, (data) => {
+            expect(data).toBeDefined();
+            expect(data).toEqual({$value: "Albania"})
+        })
+
+        url = new URL(`${HOST}/?query=filter-json(filter),reject-json(reject),nth-0,get-name`);
+        url.searchParams.append("filter", JSON.stringify({region: "Europe"}));
+        url.searchParams.append("reject", JSON.stringify({code: "AL"}));
+
+        jsb_queryObject<any>(countries, url, (data) => {
+            expect(data).toBeDefined();
+            expect(data).toEqual({$value: "Austria"})
+
+        })
+    })
+
+    test("shuffle", () => {
+        const numbers = JSON.stringify([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+        let url = new URL(`${HOST}/?query=shuffle`);
+
+        jsb_queryObject<any>(numbers, url, (data) => {
+            expect(data).toBeDefined();
+            expect(data).toBeArray();
+            expect(data).not.toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+        })
+    })
+
+    test("map", () => {
+        let url = new URL(`${HOST}/?query=map-name,slice-0-3`);
+        jsb_queryObject<any>(countries, url, (data) => {
+            expect(data).toBeDefined();
+            expect(data).toBeArray();
+            expect(data).toHaveLength(3);
+            expect(data).toEqual(["Afghanistan", "Albania", "Algeria"])
         })
     })
 })
