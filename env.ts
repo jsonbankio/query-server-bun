@@ -14,8 +14,6 @@ export const env = Env(envDir+'/.env', {
     NODE_ENV: Env.is.enum(["development", "production"], "development"),
     APP_NAME: Env.is.string("Jsonbank Query Server"),
     JSB_QUERY_SERVER_PORT: Env.is.number(2224),
-    // Max Content Size in megabytes
-    JSB_QUERY_SERVER_MAX_CONTENT_SIZE: Env.is.number(2),
 }, {
     expose: true,
 });

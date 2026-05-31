@@ -42,11 +42,18 @@ function base64JsonDecode(str: string) {
 
 
 /**
- * Get size of a string
+ * Max allowed content size in bytes (5MB).
+ * Shared by the server's early Content-Length check and the in-function guard.
+ */
+export const MAX_CONTENT_SIZE = 5 * 1024 * 1024;
+
+/**
+ * Get the byte size of a string.
+ * Uses Buffer.byteLength (no allocation) instead of encoding the whole string.
  * @param str
  */
 function jsb_stringSize(str: string) {
-    return (new TextEncoder().encode(str)).length
+    return Buffer.byteLength(str, "utf8");
 }
 
 
@@ -59,7 +66,10 @@ export function jsb_checkForVariables(
     url: URL,
     args: string[]
 ): Array<any | null> {
-    for (const i in args) {
+    // Build a new array instead of mutating the caller's args.
+    const result: Array<any | null> = [...args];
+
+    for (let i = 0; i < args.length; i++) {
         let arg = String(args[i]).trim();
         // Can't be a var( if not upto 4
         if (arg.length < 4) continue;
@@ -77,16 +87,13 @@ export function jsb_checkForVariables(
 
         if (value) {
             // If value has comma, split
-            if (!isRaw && !isJson && value && value.indexOf(",") > 0) {
+            if (!isRaw && !isJson && value.indexOf(",") > 0) {
                 value = value.split(",");
             }
 
             if (isJson) {
-                if (value.indexOf("b64(") === 0) {
-                    const encodedValue = (value as string).substr(
-                        4,
-                        value.length - 5
-                    );
+                if ((value as string).indexOf("b64(") === 0) {
+                    const encodedValue = (value as string).slice(4, -1);
 
                     try {
                         value = base64JsonDecode(encodedValue) as any;
@@ -107,9 +114,9 @@ export function jsb_checkForVariables(
             }
         }
 
-        args[i] = value as any;
+        result[i] = value as any;
     }
-    return args;
+    return result;
 }
 
 export type RespondError = { error: { code: string, message: string } };
@@ -121,11 +128,10 @@ export type Respond<T> = (res: RespondError | T, status: number) => any | ((obj:
  * @param url
  * @param respond
  */
-export function jsb_queryObject<T>(content: string, url: URL, respond: Respond<T>) {
-    // get content size
-    const contentSize = jsb_stringSize(content);
-    // stop if content size is greater than 5MB
-    if (contentSize > 5 * 1024 * 1024) {
+export function jsb_queryObject<T>(content: string | object, url: URL, respond: Respond<T>) {
+    // Only string content needs a size guard; objects were already size-checked
+    // by the server's Content-Length pre-check before being parsed.
+    if (typeof content === "string" && jsb_stringSize(content) > MAX_CONTENT_SIZE) {
         return respond(
             {
                 error: {
@@ -133,7 +139,7 @@ export function jsb_queryObject<T>(content: string, url: URL, respond: Respond<T
                     message: `Content size exceeded 5MB`
                 }
             },
-            400
+            413
         );
     }
 
@@ -148,10 +154,15 @@ export function jsb_queryObject<T>(content: string, url: URL, respond: Respond<T
     // If main query exists and has a queryable value.
     if (query && query.length) {
 
-        try {
-            parsed = JSON.parse(content);
-        } catch (err) {
-            return respond({error: {code: "invalidJson", message: "Invalid json string"}}, 400);
+        if (typeof content === "string") {
+            try {
+                parsed = JSON.parse(content);
+            } catch (err) {
+                return respond({error: {code: "invalidJson", message: "Invalid json string"}}, 400);
+            }
+        } else {
+            // Already parsed by the caller — use it directly (no re-parse).
+            parsed = content;
         }
 
 
@@ -171,7 +182,7 @@ export function jsb_queryObject<T>(content: string, url: URL, respond: Respond<T
             let [fn, ...args] = q.split("-");
 
             // Check lodash function called is allowed.
-            if (!allowedLodashFunctions.includes(fn)) {
+            if (!allowedLodashFunctions.has(fn)) {
                 // return error.
                 return respond(
                     {error: {code: "invalidQuery", message: `Invalid query: ${q}`}},
@@ -216,7 +227,7 @@ export function jsb_queryObject<T>(content: string, url: URL, respond: Respond<T
     return respond(parsed, 200);
 }
 
-const allowedLodashFunctions = [
+const allowedLodashFunctions = new Set([
     // Array
     "chunk",
     "first",
@@ -258,4 +269,4 @@ const allowedLodashFunctions = [
     "max",
     "min",
     "sum"
-];
+]);
