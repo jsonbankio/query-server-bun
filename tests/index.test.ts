@@ -7,6 +7,7 @@ const countriesObject = JSON.stringify(Countries);
 const countries = JSON.stringify(Countries.countries);
 const numbers = JSON.stringify([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 
+$json({foo: "bar", a: "b", "0": "1"}, "testVar")
 
 test("Check for variables", () => {
     let data = jsb_checkForVariables(new URL(

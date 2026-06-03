@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@xpresser/env": "^2.1.1",
-    "jsonbank": "^1.5.3",
+    "jsonbank": "^1.6.1",
     "lodash": "^4.18.1"
   }
 }
